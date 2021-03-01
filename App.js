@@ -1,5 +1,8 @@
 import React, {Component} from 'react'
 import {View, Text, StyleSheet, FlatList, Image, ActivityIndicator} from 'react-native'
+import { createAppContainer } from 'react-navigation'
+import { createStackNavigator } from 'react-navigation-stack'
+
 
 class App extends Component{
   constructor(props){
@@ -7,7 +10,8 @@ class App extends Component{
     this.state={
       data:[],
       page:1,
-      isLoading: false,
+      isLoading: true,
+      isrefresh:false,
     }
   }
 
@@ -16,10 +20,22 @@ class App extends Component{
     this.setState({isLoading:true}, this.getData)
   }
 
+  //get refresh data
+  getRefresh=async()=>{
+    const apiUrl=`https://jsonplaceholder.typicode.com/photos?_limit=5&_page=1`
+    this.setState({isrefresh:true})
+    fetch(apiUrl).then((res)=>res.json())
+    .then((resJson)=>{
+      this.setState({
+        data: this.state.data.concat(resJson),
+        isLoading:false
+      }) 
+    }).finally(()=>this.setState({isrefresh:false}))
+  }
+
   //get data
-  getData=()=>{
-    console.log(this.state.page+"this is page number")
-    const apiUrl=`https://jsonplaceholder.typicode.com/photos?_limit=10&_page=${this.state.page}`
+  getData=async()=>{
+    const apiUrl=`https://jsonplaceholder.typicode.com/photos?_limit=5&_page=${this.state.page}`
     fetch(apiUrl).then((res)=>res.json())
     .then((resJson)=>{
       this.setState({
@@ -43,13 +59,8 @@ class App extends Component{
     )
   }
 
-  paginateData=()=>{
-    this.setState({page: this.state.page+1, isLoading:true}, this.getData)
-    console.log(this.state.page)
-  }
-
-  //list footer
-  listFooter=()=>{
+   //list footer
+   indicateLoading=()=>{
     return(
       this.state.isLoading?
       <View style={styles.loading}>
@@ -59,6 +70,13 @@ class App extends Component{
     )
   }
 
+  paginateData=()=>{
+    this.setState({page: this.state.page+1, isLoading:true}, this.getData)
+    console.log(this.state.page)
+  }
+
+ 
+
   render(){
     return(
       <View style={styles.container}>
@@ -67,13 +85,21 @@ class App extends Component{
           renderItem={this.renderItem}
           keyExtractor={(item, index)=>index.toString()}
           onEndReached={this.paginateData}
-          onEndReachedThreshold={0}
-          ListFooterComponent={this.listFooter}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={this.indicateLoading}
+          refreshing={this.state.isrefresh}
+          onRefresh={this.getRefresh}
          />
       </View>
     )
   }
 }
+
+const AppNavigator = createStackNavigator({
+  Home: {
+    screen: App,
+  },
+});
 
 const styles=StyleSheet.create({
   container:{
@@ -92,7 +118,8 @@ const styles=StyleSheet.create({
   loading:{
     marginTop:10,
     alignItems: 'center',
+    justifyContent: 'center',
   }
 })
 
-export default App;
+export default createAppContainer(AppNavigator);
