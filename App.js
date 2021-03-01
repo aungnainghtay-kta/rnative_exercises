@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {View, Text, StyleSheet, FlatList, Image, ActivityIndicator} from 'react-native'
+import {View, Text, StyleSheet, FlatList, Image, ActivityIndicator, Button} from 'react-native'
 import { createAppContainer } from 'react-navigation'
 import { createStackNavigator } from 'react-navigation-stack'
 
@@ -48,6 +48,7 @@ class App extends Component{
   renderItem=({item})=>{
     return(
       <View style={styles.itemList}>
+        <Button title='go detail' onPress={()=>this.props.navigation.navigate('Details')} />
         <Image style={styles.image} source={{ uri:item.thumbnailUrl }} />
         <Text>
           {item.title}
@@ -95,11 +96,25 @@ class App extends Component{
   }
 }
 
-const AppNavigator = createStackNavigator({
-  Home: {
-    screen: App,
+class DetailsScreen extends React.Component {
+  render() {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>Details Screen</Text>
+      </View>
+    );
+  }
+}
+
+const AppNavigator = createStackNavigator(
+  {
+    Home: App,
+    Details: DetailsScreen,
   },
-});
+  {
+    initialRouteName: 'Home',
+  }
+);
 
 const styles=StyleSheet.create({
   container:{
